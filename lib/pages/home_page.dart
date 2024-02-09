@@ -1,22 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+import '../providers/weather_data_provider/weather_data_provider.dart';
+
+class HomePage extends HookConsumerWidget {
+  const HomePage({super.key});
+  Function() _onButtonPressed(WidgetRef ref) {
+    return () {
+      ref.read(weatherDataProvider('Skawina').notifier).changeLocation(20, 20);
+    };
+  }
 
   @override
-  State<HomePage> createState() => _HomePageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final weather = ref.watch(
+      weatherDataProvider('Skawina'),
+    );
 
-class _HomePageState extends State<HomePage> {
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: _onButtonPressed(ref),
+        child: Icon(Icons.refresh),
+      ),
       body: Container(
         padding: MediaQuery.of(context).padding,
         child: Center(
-          child: Text(
-            'Hello Flutter!',
-            style: Theme.of(context).textTheme.headlineLarge,
+          child: weather.when(
+            data: (data) => Text(data.toString()),
+            error: (error, __) => Text('Error: ${error.toString()}'),
+            loading: () => const CircularProgressIndicator(),
           ),
         ),
       ),
